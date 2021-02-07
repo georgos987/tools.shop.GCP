@@ -1,0 +1,186 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: app-mysql-tool
+  labels:
+    app: app-mysql-tool
+spec:
+  replicas: 1
+  selector:
+
+    matchLabels:
+      app: app-mysql-tool
+  template:
+    metadata:
+      labels:
+        app: app-mysql-tool
+    spec:
+      containers:
+      - name: app-mysql-tool
+        image: mysql:latest
+        volumeMounts:
+          - mountPath: /var/lib/mysql
+            name: cache-volume
+          - name: mysql-initdb
+            mountPath: /docker-entrypoint-initdb.d
+        resources: {}
+        ports:
+        - containerPort: 3306
+        env: 
+        - name: "MYSQL_ROOT_PASSWORD"
+          valueFrom:
+           secretKeyRef:
+            name: secret-db
+            key: password
+        - name: "MYSQL_DATABASE"
+          value: "tools_shop"
+        - name: "MYSQL_USER"
+          valueFrom:
+           secretKeyRef:
+            name: secret-db
+            key: username
+        - name: "MYSQL_PASSWORD"
+          valueFrom:
+           secretKeyRef:
+            name: secret-db
+            key: password
+      volumes:
+        - name: cache-volume
+          persistentVolumeClaim:
+            claimName: mysql-pv-claim-tool
+        - name: mysql-initdb
+          configMap:
+            name: mysql-initdb-config 
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: mysql-service-tool
+spec:
+  type: LoadBalancer
+  selector:
+    app: app-mysql-tool
+  ports:
+  - port: 3306
+    targetPort: 3306
+      
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: mysql-pv-claim-tool
+  labels:
+    app: app-mysql-tool
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 100Mi
+--- 
+apiVersion: v1
+kind: Secret
+metadata:
+  name: secret-db
+type: Opaque  
+data:
+  username: Z2Vvcmdvcw==
+  password: MTIxMjIwMTJnZQ==
+
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: mysql-initdb-config
+data:
+  initdb.sql: |
+      -- -----------------------------------------------------
+      -- Schema tools_shop
+      -- -----------------------------------------------------
+      DROP SCHEMA IF EXISTS `tools_shop`;
+
+      CREATE SCHEMA `tools_shop`;
+      USE `tools_shop` ;
+      -- -----------------------------------------------------
+   
+      -- --------------------u---------------------------------
+      -- Table `tools_shop`.`tool_category`
+      -- -----------------------------------------------------
+      CREATE TABLE IF NOT EXISTS `tools_shop`.`tool_category` (
+        `id` BIGINT(20) NOT NULL AUTO_INCREMENT,
+        `category_name` VARCHAR(255) NULL DEFAULT NULL,
+        PRIMARY KEY (`id`))
+      ENGINE=InnoDB
+      AUTO_INCREMENT = 1;
+
+      -- ----------------------------------------------------
+      -- Table `tools_shop`.`tool`
+      -- -----------------------------------------------------
+      CREATE TABLE IF NOT EXISTS `tools_shop`.`tool` (
+        `id` BIGINT(20) NOT NULL AUTO_INCREMENT,
+        `name` VARCHAR(255) DEFAULT NULL,
+        `description` VARCHAR(255) DEFAULT NULL,
+        `unit_price` DECIMAL(13,2) DEFAULT NULL,
+        `image_url` VARCHAR(255) DEFAULT NULL,
+        `active` BIT DEFAULT 1,
+        `units_in_stock` INT(11) DEFAULT NULL,
+        `date_created` DATETIME(6) DEFAULT NULL,
+        `last_updated` DATETIME(6) DEFAULT NULL,
+        `category_id` BIGINT(20) NOT NULL,
+        PRIMARY KEY (`id`),
+        KEY `fk_category` (`category_id`),
+        CONSTRAINT `fk_category` FOREIGN KEY (`category_id`) REFERENCES `tool_category` (`id`)
+      )
+      ENGINE=InnoDB
+      AUTO_INCREMENT = 1;
+
+
+      -- -----------------------------------------------------
+      -- Table structure for table `role`
+      -- -----------------------------------------------------
+      DROP TABLE IF EXISTS `tools_shop.roles`;
+      CREATE TABLE `roles` (
+        `id` BIGINT(20) NOT NULL AUTO_INCREMENT,
+        `name` varchar(255) NOT NULL,
+        PRIMARY KEY (`id`)
+      )
+      ENGINE=InnoDB
+      AUTO_INCREMENT = 1;
+
+
+
+      -- -----------------------------------------------------
+      -- Add sample data
+      -- -----------------------------------------------------
+      INSERT INTO `roles`(NAME) 
+      VALUES ('ADMIN'),
+      ('USER');
+
+
+
+
+      INSERT INTO `tool_category`(CATEGORY_NAME) VALUES ('Standard');
+
+      INSERT INTO `tool` (NAME, DESCRIPTION, IMAGE_URL, ACTIVE, UNITS_IN_STOCK, UNIT_PRICE, CATEGORY_ID,DATE_CREATED) 
+      VALUES (N'لاصق عريض ورقي',N'لاصق عريض ورقي 24مم*30م', 'assets/bilder/50245.jpg', 1, 100, 0.45, 1, NOW()),
+      (N'طقم مفك كهرباء',N'طقم مفك كهرباء عازل  6 قطع', 'assets/bilder/38013.jpg', 1, 6, 6, 1, NOW()),
+      (N'طقم مفتاح نجمة',N'طقم مفتاح نجمة 9 قطع حجم صغير', 'assets/bilder/20056.jpg', 1, 100, 2.69, 1, NOW()),
+      (N'طقم مفك مصالب وشق',N'طقم مفك مصالب وشق 4 قطع', 'assets/bilder/20015.jpg', 1, 100, 3.32, 1, NOW()),
+
+      (N'مجموعة مفتاح طرف',N'مجموعة مفتاح طرف 8-10-12-14-15-17-19', 'assets/bilder/15159.jpg', 1, 100, 10.93, 1, NOW()),
+
+      (N'طقم فنجان',N'طقم فنجان 12 قطعة صناعي 1/2 انش', 'assets/bilder/15152.jpg', 1, 100, 15.06 , 1, NOW()),
+
+      (N'مجموعة مفتاح شق',N'مجموعة مفتاح شق 6*7---20*22', 'assets/bilder/15076.jpg', 1, 100, 11.02, 1, NOW()),
+
+      (N'مجموعة مفتاح طرف',N'مجموعة مفتاح طرف6-7-8-9-10-11-12-13-14-17-19- 22', 'assets/bilder/15075.jpg', 1, 100, 16.78, 1, NOW()),
+
+      (N'قطاعة عادية 7 انش',N'قطاعة عادية 7 انش', 'assets/bilder/10004.jpg', 1, 100, 2.52, 1, NOW()),
+
+      (N'قطاعة عادية 6 انش',N'قطاعة عادية 6 انش', 'assets/bilder/10003.jpg', 1, 100, 2.04, 1, NOW()),
+
+      (N'بانسة عادية 8 انش',N'بانسة عادية 8 انش', 'assets/bilder/10002.jpg', 1, 100, 2.34, 1, NOW()),
+
+      (N'بانسة عادية 7 انش',N'بانسة عادية 7 انش', 'assets/bilder/10001.jpg', 1, 100, 2.16, 1, NOW()),
+
+      (N'مفتاح انكليزي 12 انش',N'مفتاح انكليزي 12 انش', 'assets/bilder/15004.jpg', 1, 100, 5.78, 1, NOW());

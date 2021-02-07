@@ -1,0 +1,19 @@
+pipeline {
+  agent any
+  stages {
+      stage('run mysql') {
+        steps {
+          git branch: 'main', credentialsId: 'Git', url: 'https://github.com/georgos987/tools.shop.GCP.git'
+          withCredentials([file(credentialsId: 'gcloud', variable: 'GCLOID_LOGIN')]) {
+           bat 'gcloud auth activate-service-account --key-file=%GCLOID_LOGIN%'
+          }
+          withCredentials([usernamePassword( credentialsId: 'docker-hub', usernameVariable: 'USERNAME', passwordVariable: 'PASSWORD')]) {
+           bat 'docker login -u  %USERNAME%  -p %PASSWORD%'
+          }
+          bat  'cd kubernetes/GCP & kubectl apply -f ./mysql-tool-GCP.yml'
+          bat  'cd kubernetes/GCP & kubectl apply -f ./phpmyadmin-tool-GCP.yml'
+        }
+      }
+  }
+}
+

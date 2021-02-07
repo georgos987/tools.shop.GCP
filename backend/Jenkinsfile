@@ -1,0 +1,22 @@
+pipeline {
+  agent any
+  stages {
+      stage('run spring image') {
+        steps {
+          git branch: 'main', credentialsId: 'Git', url: 'https://github.com/georgos987/tools.shop.GCP.git'
+          withCredentials([file(credentialsId: 'gcloud', variable: 'GCLOID_LOGIN')]) {
+           bat 'gcloud auth activate-service-account --key-file=%GCLOID_LOGIN%'
+          }
+          withCredentials([usernamePassword( credentialsId: 'docker-hub', usernameVariable: 'USERNAME', passwordVariable: 'PASSWORD')]) {
+           bat 'docker login -u  %USERNAME%  -p %PASSWORD%'
+          }
+          bat 'docker rmi -f georgos987/springimage'
+          bat 'cd backend & mvnw spring-boot:build-image'
+          bat 'docker tag backend:0.0.1-SNAPSHOT georgos987/springimage'
+          bat 'docker push georgos987/springimage'
+          bat 'cd kubernetes/GCP & kubectl apply -f ./springboot-GCP.yml'
+        }
+      }
+  }
+}
+

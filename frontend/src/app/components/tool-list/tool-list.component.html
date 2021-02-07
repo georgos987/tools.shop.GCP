@@ -1,0 +1,56 @@
+<div class="main-content">
+    <div class="section-content section-content-p30">
+        <!-- <h4>Category: {{ currentCategoryName }}</h4> -->
+        <div class="container-fluid">
+            <div class="row">
+                <!-- loop over the collection of tools -->
+                <div *ngFor="let tempTool of tools" class="col-md-3">
+                    <div class="tool-box">
+                        <a routerLink="/tools/{{ tempTool.id }}">
+                            <img src="{{ tempTool.imageUrl }}" class="img-tool">
+                        </a>
+                        <div>
+                            <a routerLink="/tools/{{ tempTool.id }}">
+                                <h1 routerLink="/tools/{{ tempTool.id }}">{{ tempTool.name }}</h1>
+                            </a>
+                        </div>
+                        <div class="price">{{tempTool.unitPrice | number:0}} $</div>
+                        <button (click)="addToCart(tempTool)" class="btn btn-primary"
+                            style="margin-bottom: 1rem ;  background-color: #0e5f5b">Add to cart</button>
+                    </div>
+                </div>
+                <!-- if tools empty then display a messaage -->
+                <div *ngIf="tools?.length==0" class="alert alert-warning col-md-12" role="alert">
+                    No tools found.
+                </div>
+
+                <div class="footer-pagination">
+                    <div>
+                        <div class="col-md-6"></div>
+
+                        <div class="col-md-9" style="background-color: #7dd3cf;">
+                            <div class="pageClass">
+                                <div style="float: right; ">
+                                    <ngb-pagination [(page)]="thePageNumber" [pageSize]="thePageSize"
+                                        [collectionSize]="theTotaElements" (pageChange)="listTools()" [maxSize]="5"
+                                        [boundaryLinks]="true">
+                                    </ngb-pagination>
+                                </div>
+
+                                <div style="float: left">
+                                    <span>Page Size</span>
+                                    <select (change)="updatePageSize($event.target.value)">
+                                        <option selected="true">8</option>
+                                        <option>16</option>
+                                        <option>32</option>
+                                        <option>64</option>
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+        </div>
+    </div>

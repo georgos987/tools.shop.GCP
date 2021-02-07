@@ -1,0 +1,58 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: app-tool-phpmyadmin
+  labels:
+    app: app-tool-phpmyadmin
+spec:
+  selector:
+    matchLabels:
+      app: app-tool-phpmyadmin
+  template:
+    metadata:
+      labels:
+        app: app-tool-phpmyadmin
+    spec:
+      containers:
+      - name: app-tool-phpmyadmin
+        image: phpmyadmin/phpmyadmin
+        resources: {}
+        ports:
+        - containerPort: 80
+        env: 
+        - name: MYSQL_ROOT_PASSWORD
+          valueFrom:
+           secretKeyRef:
+            name: secret-db
+            key: password
+        - name: "MYSQL_DATABASE"
+          value: "tools_shop"
+        - name: "MYSQL_USER"
+          valueFrom:
+           secretKeyRef:
+            name: secret-db
+            key: username
+        - name: "MYSQL_PASSWORD"
+          valueFrom:
+           secretKeyRef:
+            name: secret-db
+            key: password
+        - name: PMA_HOST
+          value: mysql-service-tool
+        - name: PMA_PORT
+          value: "3306"
+        - name: MYSQL_PORT
+          value: "3306"
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name:  phpmyadmin-sevice-tool
+spec:  
+  type: LoadBalancer    
+  selector:
+    app:  app-tool-phpmyadmin
+  ports:
+  - port: 8001
+    targetPort: 80

@@ -1,0 +1,15 @@
+<div class="detail-section">
+    <div class="container-fluid">
+       
+            <img src="{{tool?.imageUrl}}" class="img-tool">
+            <h3>{{tool.name}}</h3>
+            <div class= "price">{{tool.unitPrice| number:0}} $</div>
+            <button (click)="addToCart()" class="btn btn-primary" style="background-color: #0e5f5b;">Add to cart</button>
+            <hr>
+            <h4>Description</h4>
+            <p>{{ tool.description }}</p>
+
+         <a routerLink="/tools" class="mt-5" style="color: #0e5f5b;">Back to tool List</a>
+             
+    </div>
+</div>

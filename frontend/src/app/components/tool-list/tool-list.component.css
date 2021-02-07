@@ -1,0 +1,31 @@
+.pageClass{
+    text-align: center;
+    float: left;
+         margin-top: 10rem;
+    margin-left: 15rem;
+    position: relative;
+  
+}
+.img-tool{
+    width: 14rem;
+    height: 18rem; 
+}
+
+ngb-pagination ::ng-deep a {
+    color: black !important;
+    font-weight: bold;
+
+  }
+  
+  ngb-pagination ::ng-deep .page-item.active .page-link {
+    border-color:black;
+    background-color: #0e5f5b;
+  }
+  
+  ngb-pagination ::ng-deep .page-item.active .page-link:focus, .page-link:not(:disabled):not(.disabled):active:focus {
+    box-shadow: 0 0 0 0.1rem  #0e5f5b;
+  }
+  
+  ngb-pagination ::ng-deep .page-link:not(:disabled):not(.disabled):active:focus {
+    box-shadow: 0 0 0 0.1rem  #0e5f5b;
+  }
